@@ -166,12 +166,71 @@
     });
   });
 
-  Array.prototype.slice.call(document.querySelectorAll("[data-collection]")).forEach(function (card) {
+  var collectionCards = Array.prototype.slice.call(document.querySelectorAll("[data-collection]"));
+  var collectionFilters = Array.prototype.slice.call(document.querySelectorAll("[data-collection-filter]"));
+
+  function activateFirstVisibleCollection() {
+    var activeVisible = false;
+    collectionCards.forEach(function (card) {
+      if (!card.hidden && card.classList.contains("is-active")) activeVisible = true;
+    });
+    if (activeVisible) return;
+    collectionCards.some(function (card) {
+      if (card.hidden) return false;
+      card.classList.add("is-active");
+      return true;
+    });
+  }
+
+  function setCollectionFilter(filter) {
+    collectionFilters.forEach(function (button) {
+      var active = button.getAttribute("data-collection-filter") === filter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    collectionCards.forEach(function (card) {
+      var group = card.getAttribute("data-collection-group") || "all";
+      var visible = filter === "all" || group === filter;
+      card.hidden = !visible;
+      if (!visible) card.classList.remove("is-active");
+    });
+    activateFirstVisibleCollection();
+  }
+
+  collectionFilters.forEach(function (button) {
+    button.addEventListener("click", function () {
+      setCollectionFilter(button.getAttribute("data-collection-filter") || "all");
+    });
+  });
+
+  collectionCards.forEach(function (card) {
     card.addEventListener("click", function () {
-      Array.prototype.slice.call(document.querySelectorAll("[data-collection]")).forEach(function (item) {
+      collectionCards.forEach(function (item) {
         item.classList.remove("is-active");
       });
       card.classList.add("is-active");
+    });
+  });
+
+  var catalogueFilters = Array.prototype.slice.call(document.querySelectorAll("[data-catalogue-filter]"));
+  var catalogueItems = Array.prototype.slice.call(document.querySelectorAll("[data-catalogue-item]"));
+
+  function setCatalogueFilter(filter) {
+    catalogueFilters.forEach(function (button) {
+      var active = button.getAttribute("data-catalogue-filter") === filter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+
+    catalogueItems.forEach(function (item) {
+      var groups = (item.getAttribute("data-catalogue-groups") || "").split(/\s+/);
+      item.hidden = !(filter === "all" || groups.indexOf(filter) !== -1);
+    });
+  }
+
+  catalogueFilters.forEach(function (button) {
+    button.addEventListener("click", function () {
+      setCatalogueFilter(button.getAttribute("data-catalogue-filter") || "all");
     });
   });
 
